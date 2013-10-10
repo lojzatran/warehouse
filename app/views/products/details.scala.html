@@ -2,7 +2,8 @@
 
 @main("Product form") {
     <h1>Product form</h1>
-    @helper.form(action = routes.Products.save()) {
+    @helper.form(action = routes.Products.save(),
+        'enctype -> "multipart/form-data") {
         <fieldset>
             <legend>Product (@productForm("name").valueOr("New"))</legend>
             @helper.inputText(productForm("ean"))
@@ -31,6 +32,13 @@
                         }
                     }
                     plastic
+                </div>
+            </div>
+            @helper.inputFile(productForm("picture"))
+            <div class="control-group">
+                <div class="controls">
+                    <img style="position : relative ; left : 50 px ; height : 80 px"
+                    src="/picture/@productForm("ean").value"> #3
                 </div>
             </div>
         </fieldset>

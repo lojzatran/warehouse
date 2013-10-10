@@ -1,5 +1,6 @@
 package model;
 
+import play.libs.F;
 import play.mvc.PathBindable;
 import play.data.validation.Constraints;
 
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -35,10 +37,12 @@ public class ProductModel implements PathBindable<ProductModel> {
 
     public List<Tag> tags = new LinkedList<Tag>();
     @Constraints.Required
+    @Constraints.ValidateWith(EanValidator.class)
     public String ean;
     @Constraints.Required
     public String name;
     public String description;
+    public byte[] picture;
 
     public ProductModel() {
     }
@@ -99,4 +103,20 @@ public class ProductModel implements PathBindable<ProductModel> {
     public String javascriptUnbind() {
         return this.ean;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    static class EanValidator extends Constraints.Validator<String> {
+
+        @Override
+        public boolean isValid(String s) {
+            String pattern = "^[0-9]{13}$";
+            return s != null && s.matches(pattern);
+        }
+
+        @Override
+        public F.Tuple<String, Object[]> getErrorMessageKey() {
+            return new F.Tuple<String, Object[]>("error.invalid.ean",
+                    new String[]{});
+        }
+    }
+
 }
