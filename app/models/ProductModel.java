@@ -1,14 +1,16 @@
-package model;
+package models;
 
-import play.libs.F;
-import play.mvc.PathBindable;
+import play.db.ebean.Model;
 import play.data.validation.Constraints;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,9 +19,12 @@ import java.util.regex.Pattern;
  * Time: 11:42
  * To change this template use File | Settings | File Templates.
  */
-public class ProductModel implements PathBindable<ProductModel> {
+@Entity
+public class ProductModel extends Model {
+
 
     private static Set<ProductModel> products;
+
 
     static {
         products = new HashSet<ProductModel>();
@@ -35,14 +40,20 @@ public class ProductModel implements PathBindable<ProductModel> {
                 "Paperclips description 5"));
     }
 
+    @Id
+    public Long id;
+
+    @ManyToMany
     public List<Tag> tags = new LinkedList<Tag>();
     @Constraints.Required
-    @Constraints.ValidateWith(EanValidator.class)
     public String ean;
     @Constraints.Required
     public String name;
     public String description;
     public byte[] picture;
+
+    @OneToMany(mappedBy = "product")
+    public List<StockItem> stockItems;
 
     public ProductModel() {
     }
@@ -84,39 +95,8 @@ public class ProductModel implements PathBindable<ProductModel> {
         return String.format("%s - %s", ean, name);
     }
 
-    public void save() {
-        products.remove(findByEan(this.ean));
-        products.add(this);
-    }
-
-    @Override
-    public ProductModel bind(String key, String txt) {
-        return findByEan(txt);
-    }
-
-    @Override
-    public String unbind(String key) {
-        return this.ean;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public String javascriptUnbind() {
-        return this.ean;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    static class EanValidator extends Constraints.Validator<String> {
-
-        @Override
-        public boolean isValid(String s) {
-            String pattern = "^[0-9]{13}$";
-            return s != null && s.matches(pattern);
-        }
-
-        @Override
-        public F.Tuple<String, Object[]> getErrorMessageKey() {
-            return new F.Tuple<String, Object[]>("error.invalid.ean",
-                    new String[]{});
-        }
+    public static Finder<Long, ProductModel> find() {
+        return new Finder<Long, ProductModel>(Long.class, ProductModel.class);
     }
 
 }

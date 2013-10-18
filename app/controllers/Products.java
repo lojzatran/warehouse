@@ -1,11 +1,12 @@
 package controllers;
 
+import com.avaje.ebean.Ebean;
 import com.google.common.io.Files;
-import model.ProductModel;
-import model.Tag;
+import models.ProductModel;
+import models.StockItem;
+import models.Tag;
 import play.api.templates.Html;
 import play.data.Form;
-import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -25,11 +26,11 @@ public class Products extends Controller {
             .form(ProductModel.class);
 
     public static Result index() {
-        return redirect(routes.Products.list(1));
+        return redirect(routes.Products.list());
     }
 
-    public static Result list(Integer page) {
-        Set<ProductModel> products = ProductModel.findAll();
+    public static Result list() {
+        List<ProductModel> products = ProductModel.find().findList();
         Html renderedTemplate = list.render(products);
         return ok(renderedTemplate);
     }
@@ -38,7 +39,10 @@ public class Products extends Controller {
         return ok(details.render(productForm));
     }
 
-    public static Result details(ProductModel product) {
+    public static Result details(Long id) {
+        ProductModel product = ProductModel.find().byId(id);
+        if (product == null)
+            return notFound(String.format("Product %s does not exist.", id));
         Form<ProductModel> filledForm = productForm.fill(product);
         return ok(details.render(filledForm));
     }
@@ -69,14 +73,21 @@ public class Products extends Controller {
             }
         }
         product.tags = tags;
+
+        StockItem item = new StockItem();
+        item.quantity = 0L;
+        item.product = product;
+
         product.save();
+        item.save();
+
         flash("success",
                 String.format("Successfully added product %s", product));
-        return redirect(routes.Products.list(1));
+        return redirect(routes.Products.list());
     }
 
-    public static Result picture(String ean) {
-        final ProductModel product = ProductModel.findByEan(ean);
+    public static Result picture(Long id) {
+        final ProductModel product = Ebean.find(ProductModel.class, id);
         if (product == null) return notFound();
         return ok(product.picture);
     }

@@ -1,11 +1,11 @@
-@(products: Set[model.ProductModel])
+@(products: List[models.ProductModel])
 @main("Products catalogue") {
     <h1>All products</h1>
     <dl>
     @for(product <- products) {
         <dt>
             <i class="icon icon-pencil"></i>
-            <a href="@routes.Products.details(product)">
+            <a href="@routes.Products.details(product.id)">
                 @product.ean - @product.name
             </a>
         </dt>

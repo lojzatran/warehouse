@@ -1,13 +1,21 @@
-package model;
+package models;
 
 import play.data.validation.Constraints;
+import play.db.ebean.Model;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import java.util.*;
 
-public class Tag {
+@Entity
+public class Tag extends Model {
+
+    @Id
     public Long id;
     @Constraints.Required
     public String name;
+    @ManyToMany(mappedBy = "tags")
     public List<ProductModel> products;
 
     public Tag() {
@@ -32,10 +40,12 @@ public class Tag {
         tags.add(new Tag(3L, "plastic",
                 ProductModel.findByName("paperclips")));
     }
+
+    public static Finder<Long, Tag> find() {
+        return new Finder<Long, Tag>(Long.class, Tag.class);
+    }
+
     public static Tag findById(Long id) {
-        for (Tag tag : tags) {
-            if(tag.id == id) return tag;
-        }
-        return null;
+        return find().byId(id);
     }
 }
